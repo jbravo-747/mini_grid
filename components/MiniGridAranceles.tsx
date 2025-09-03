@@ -1,8 +1,7 @@
 'use client';
 
-import links from "@/data/links.json";
-
 import React, { useEffect, useState } from "react";
+import links from "@/data/links.json";
 
 export type SourceType = "IMCO" | "El Universal";
 
@@ -26,16 +25,15 @@ const LOGO_URLS: Record<SourceType, string> = {
   "El Universal": "https://www.eluniversal.com.mx/favicon.ico",
 };
 
-// Construir items base únicamente a partir de los links (1 solo archivo a editar)
 const DEFAULT_ITEMS: GridItem[] = [
   ...links.imco.map((url: string, i: number) => ({
-    id: `imco-${i+1}`,
+    id: `imco-${i + 1}`,
     title: new URL(url).hostname.replace(/^www\./, ""),
     source: "IMCO" as const,
     url,
   })),
   ...links.el_universal.map((url: string, i: number) => ({
-    id: `eluni-${i+1}`,
+    id: `eluni-${i + 1}`,
     title: new URL(url).hostname.replace(/^www\./, ""),
     source: "El Universal" as const,
     url,
@@ -71,9 +69,7 @@ function LogoBadge({ source }: { source: SourceType }) {
 
 function Card({ item }: { item: GridItem }) {
   return (
-    <article
-      className="group relative h-[170px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-blue-500"
-    >
+    <article className="group relative h-[170px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-blue-500">
       <div className="relative h-20 w-full bg-slate-100">
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -146,11 +142,7 @@ function Card({ item }: { item: GridItem }) {
   );
 }
 
-export default function MiniGridAranceles({
-  items = DEFAULT_ITEMS,
-}: {
-  items?: GridItem[];
-}) {
+export default function MiniGridAranceles({ items = DEFAULT_ITEMS }: { items?: GridItem[] }) {
   const [resolvedItems, setResolvedItems] = useState<GridItem[]>(items);
 
   useEffect(() => {
@@ -158,34 +150,40 @@ export default function MiniGridAranceles({
     (async () => {
       const updated = await Promise.all(
         items.map(async (it) => {
-          if (it.image) return it;
+          if (it.image && it.title) return it;
           try {
             const r = await fetch(`/api/og-image?url=${encodeURIComponent(it.url)}`, { cache: "no-store" });
             if (!r.ok) return it;
             const data = await r.json();
             if (data?.image || data?.title) {
-                return { ...it, image: (data.image as string) || it.image, title: (data.title as string) || it.title } as GridItem;
-              }
+              return {
+                ...it,
+                image: (data.image as string) || it.image,
+                title: (data.title as string) || it.title,
+              } as GridItem;
             }
-          } catch {}
+          } catch {
+            // silencio: si falla la extracción, usamos fallback
+          }
           return it;
         })
       );
       if (mounted) setResolvedItems(updated);
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [items]);
 
   return (
-    <section
-      className="w-[900px] h-[400px] overflow-hidden p-2"
-    >
+    <section className="w-[900px] h-[400px] overflow-hidden p-2">
       <div className="flex h-full flex-col">
         <h3 className="mb-1 text-[12px] font-semibold text-slate-900">
           Principales Investigaciones del IMCO
         </h3>
         <div className="mb-1 grid flex-none grid-cols-3 gap-2">
-          {resolvedItems.filter((it) => it.source === "IMCO")
+          {resolvedItems
+            .filter((it) => it.source === "IMCO")
             .slice(0, 3)
             .map((item) => (
               <Card key={item.id} item={item} />
@@ -196,7 +194,8 @@ export default function MiniGridAranceles({
           Principales notas de El Universal
         </h3>
         <div className="grid flex-none grid-cols-3 gap-2">
-          {resolvedItems.filter((it) => it.source === "El Universal")
+          {resolvedItems
+            .filter((it) => it.source === "El Universal")
             .slice(0, 3)
             .map((item) => (
               <Card key={item.id} item={item} />
