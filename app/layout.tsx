@@ -1,3 +1,5 @@
+import "../styles/globals.css";
+
 export const metadata = {
   title: "Mini Grid Aranceles",
   description: "Grid de 6 tarjetas para investigaciones sobre aranceles (IMCO & El Universal).",
