@@ -28,15 +28,30 @@ export async function GET(request: Request) {
       return null;
     };
 
-    const img =
-      pick(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i,
-           /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)["'][^>]*>/i,
-           /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["'][^>]*>/i) ||
-      pick(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
-           /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+    const pick = (...patterns: RegExp[]) => {
+  for (const re of patterns) {
+    const m = html.match(re);
+    if (m?.[1]) return m[1].trim().replace(/&amp;/g, "&");
+  }
+  return null;
+};
 
-    const absolute = img ? new URL(img, target).href : null;
-    return new Response(JSON.stringify({ ok: true, image: absolute }), {
+const img =
+  pick(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+       /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+       /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["'][^>]*>/i) ||
+  pick(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+       /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+
+const title =
+  pick(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+       /<meta[^>]+name=["']twitter:title["'][^>]+content=["']([^"']+)["'][^>]*>/i) ||
+  pick(/<title>([^<]+)<\/title>/i) ||
+  null;
+
+const absolute = img ? new URL(img, target).href : null;
+return new Response(JSON.stringify({ ok: true, image: absolute, title }), {
+JSON.stringify({ ok: true, image: absolute }), {
       headers: {
         "content-type": "application/json",
         "cache-control": "public, max-age=86400",

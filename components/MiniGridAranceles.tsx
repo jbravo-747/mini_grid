@@ -1,5 +1,7 @@
 'use client';
 
+import links from "@/data/links.json";
+
 import React, { useEffect, useState } from "react";
 
 export type SourceType = "IMCO" | "El Universal";
@@ -24,45 +26,20 @@ const LOGO_URLS: Record<SourceType, string> = {
   "El Universal": "https://www.eluniversal.com.mx/favicon.ico",
 };
 
+// Construir items base únicamente a partir de los links (1 solo archivo a editar)
 const DEFAULT_ITEMS: GridItem[] = [
-  // --- IMCO ---
-  {
-    id: 1,
-    title: "El impacto potencial de los aranceles al acero y aluminio",
-    source: "IMCO",
-    url: "https://imco.org.mx/el-impacto-potencial-de-los-aranceles-al-acero-y-aluminio/",
-  },
-  {
-    id: 2,
-    title: "Ante los aranceles, México y Canadá deben apostar por la apertura comercial",
-    source: "IMCO",
-    url: "https://imco.org.mx/ante-los-aranceles-mexico-y-canada-deben-apostar-por-la-apertura-comercial-imco/",
-  },
-  {
-    id: 3,
-    title: "El impacto de los aranceles en la economía de América del Norte",
-    source: "IMCO",
-    url: "https://imco.org.mx/el-impacto-de-los-aranceles-en-la-economia-de-america-del-norte/",
-  },
-  // --- El Universal ---
-  {
-    id: 4,
-    title: "Aranceles de Trump: México menos expuesto que Canadá (UNCTAD)",
-    source: "El Universal",
-    url: "https://www.eluniversal.com.mx/cartera/aranceles-de-trump-mexico-menos-expuesto-que-canada-a-efecto-domino-por-politica-arancelaria-de-estados-unidos-unctad/",
-  },
-  {
-    id: 5,
-    title: "Retraso de aranceles de EU fue para renegociar en el T‑MEC: Ebrard",
-    source: "El Universal",
-    url: "https://www.eluniversal.com.mx/nacion/retraso-de-aranceles-de-eu-fue-para-renegociar-en-el-t-mec-ebrard-el-80-de-exportaciones-mexicanas-no-pagan-tarifa-asegura/",
-  },
-  {
-    id: 6,
-    title: "Fed advierte estancamiento en EU y encarecimiento por aranceles",
-    source: "El Universal",
-    url: "https://www.eluniversal.com.mx/cartera/fed-advierte-por-estancamiento-economico-en-eu-asegura-encarecimiento-de-productos-debido-a-aranceles/",
-  },
+  ...links.imco.map((url: string, i: number) => ({
+    id: `imco-${i+1}`,
+    title: new URL(url).hostname.replace(/^www\./, ""),
+    source: "IMCO" as const,
+    url,
+  })),
+  ...links.el_universal.map((url: string, i: number) => ({
+    id: `eluni-${i+1}`,
+    title: new URL(url).hostname.replace(/^www\./, ""),
+    source: "El Universal" as const,
+    url,
+  })),
 ];
 
 function SourceBadge({ source }: { source: SourceType }) {
@@ -186,8 +163,9 @@ export default function MiniGridAranceles({
             const r = await fetch(`/api/og-image?url=${encodeURIComponent(it.url)}`, { cache: "no-store" });
             if (!r.ok) return it;
             const data = await r.json();
-            if (data?.image && typeof data.image === "string") {
-              return { ...it, image: data.image as string };
+            if (data?.image || data?.title) {
+                return { ...it, image: (data.image as string) || it.image, title: (data.title as string) || it.title } as GridItem;
+              }
             }
           } catch {}
           return it;

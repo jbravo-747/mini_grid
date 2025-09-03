@@ -40,3 +40,9 @@ Abre `components/MiniGridAranceles.tsx` y edita `DEFAULT_ITEMS` o pásale un pro
 - Si una página no tiene `og:image`, se verá el placeholder + logos de fuente.
 - El endpoint usa runtime Node.js para mayor compatibilidad en Vercel.
 - Si necesitas versión para **WordPress (sin Next)**, te puedo generar un shortcode PHP con un pequeño proxy para `og:image`.
+
+
+## Actualizar solo un archivo
+Edita **`data/links.json`** y cambia los URLs. El grid se actualizará con:
+- Título automático (og:title o `<title>` como respaldo)
+- Imagen automática (og:image / twitter:image)
