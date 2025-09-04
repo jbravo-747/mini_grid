@@ -9,6 +9,7 @@ export async function GET(request: Request) {
       headers: { "content-type": "application/json" },
     });
   }
+
   try {
     const res = await fetch(target, {
       headers: {
@@ -28,34 +29,30 @@ export async function GET(request: Request) {
       return null;
     };
 
-    const pick = (...patterns: RegExp[]) => {
-  for (const re of patterns) {
-    const m = html.match(re);
-    if (m?.[1]) return m[1].trim().replace(/&amp;/g, "&");
-  }
-  return null;
-};
+    const img =
+      pick(
+        /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+        /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+        /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["'][^>]*>/i
+      ) ||
+      pick(
+        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+        /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i
+      );
 
-const img =
-  pick(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i,
-       /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)["'][^>]*>/i,
-       /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["'][^>]*>/i) ||
-  pick(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
-       /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+    const title =
+      pick(
+        /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i,
+        /<meta[^>]+name=["']twitter:title["'][^>]+content=["']([^"']+)["'][^>]*>/i
+      ) || pick(/<title>([^<]+)<\/title>/i);
 
-const title =
-  pick(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i,
-       /<meta[^>]+name=["']twitter:title["'][^>]+content=["']([^"']+)["'][^>]*>/i) ||
-  pick(/<title>([^<]+)<\/title>/i) ||
-  null;
+    const absolute = img ? new URL(img, target).href : null;
 
-const absolute = img ? new URL(img, target).href : null;
-return new Response(JSON.stringify({ ok: true, image: absolute, title }), {
-JSON.stringify({ ok: true, image: absolute }), {
+    return new Response(JSON.stringify({ ok: true, image: absolute, title }), {
       headers: {
         "content-type": "application/json",
-        "cache-control": "public, max-age=86400",
-      },
+        "cache-control": "public, max-age=86400"
+      }
     });
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: "Fetch failed" }), {
