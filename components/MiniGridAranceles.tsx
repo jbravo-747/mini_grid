@@ -178,7 +178,7 @@ export default function MiniGridAranceles({ items = DEFAULT_ITEMS }: { items?: G
   return (
     <section className="w-[900px] h-[400px] overflow-hidden p-2">
       <div className="flex h-full flex-col">
-        <h3 className="mb-1 text-[12px] font-semibold text-slate-900">
+        <h3 className="mb-1 text-[14px] font-semibold text-slate-900">
           Principales Investigaciones del IMCO
         </h3>
         <div className="mb-1 grid flex-none grid-cols-3 gap-2">
